@@ -1,0 +1,46 @@
+[
+  {
+    "access_token": "asdf",
+    "expires_in": 86400,
+    "token_type": "Bearer"
+  },
+  {
+    "id": 1,
+    "name": "test resource 123",
+    "collections": [
+      {
+        "id": 1,
+        "name": "test collection name"
+      }
+    ]
+  },
+  {
+    "id": 1,
+    "name": "test resource 123",
+    "collections": [
+      {
+        "id": 1,
+        "name": "test collection name"
+      }
+    ]
+  },
+  {
+    "id": 1,
+    "owner": "zzzaaa",
+    "name": "test collection name",
+    "resources": []
+  },
+  [
+    {
+      "id": 1,
+      "owner": "zzzaaa",
+      "name": "test collection name",
+      "resources": [
+        {
+          "id": 1,
+          "name": "test resource 123"
+        }
+      ]
+    }
+  ]
+]

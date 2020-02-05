@@ -1,0 +1,159 @@
+[
+  {
+    "endpoint": {
+      "scheme": "https",
+      "host": "<env.reqchain_host>",
+      "path": "/token",
+      "type": "POST"
+    },
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "client_id":"<env.reqchain_client_id>",
+      "client_secret":"<env.reqchain_client_secret>",
+      "audience":"<env.reqchain_audience>",
+      "grant_type":"<env.reqchain_grant_type>"
+    },
+    "chainMappings": [
+      {
+        "useResponseKey": "access_token",
+        "mapTo": "headers.Authorization",
+        "preserveValueAs": "token"
+      }
+    ]
+  },
+  {
+    "endpoint": {
+      "scheme": "http",
+      "host": "localhost",
+      "port": 8080,
+      "path": "/resource",
+      "type": "POST"
+    },
+    "headers": {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer <token>"
+    },
+    "body": {
+      "name": "test resource 123",
+      "collectionIds": [1]
+    },
+    "chainMappings": [
+      {
+        "usePreservedValue": "token",
+        "mapTo": "headers.Authorization"
+      },
+      {
+        "useResponseKey": "id",
+        "mapTo": "endpoint.path",
+        "preserveValueAs": "resourceId"
+      }
+    ],
+    "responseAssertions": [
+      {
+        "checkResponseKey": "collections[0].name",
+        "expectedValue": "test collection name"
+      },
+      {
+        "checkResponseKey": "name",
+        "expectedValue": "test resource 123"
+      }
+    ]
+  },
+  {
+    "endpoint": {
+      "scheme": "http",
+      "host": "localhost",
+      "port": 8080,
+      "path": "/resource/<resourceId>",
+      "type": "GET"
+    },
+    "headers": {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer <token>"
+    },
+    "chainMappings": [
+      {
+        "usePreservedValue": "token",
+        "mapTo": "headers.Authorization"
+      },
+      {
+        "useResponseKey": "collections[0].id",
+        "mapTo": "endpoint.path",
+        "preserveValueAs": "collectionId"
+      }
+    ],
+    "responseAssertions": [
+      {
+        "checkResponseKey": "name",
+        "expectedValue": "test resource 123"
+      }
+    ]
+  },
+  {
+    "endpoint": {
+      "scheme": "http",
+      "host": "localhost",
+      "port": 8080,
+      "path": "/collection/<collectionId>",
+      "type": "GET"
+    },
+    "headers": {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer <token>"
+    },
+    "chainMappings": [
+      {
+        "usePreservedValue": "token",
+        "mapTo": "headers.Authorization"
+      }
+    ],
+    "responseAssertions": [
+      {
+        "checkResponseKey": "name",
+        "expectedValue": "test collection name"
+      },
+      {
+        "checkResponseKey": "id",
+        "expectedValue": 1
+      },
+      {
+        "checkResponseKey": "owner",
+        "expectedValue": "zzzaaa"
+      }
+    ]
+  },
+  {
+    "endpoint": {
+      "scheme": "http",
+      "host": "localhost",
+      "port": 8080,
+      "path": "/collection",
+      "type": "GET"
+    },
+    "headers": {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer <token>"
+    },
+    "chainMappings": [],
+    "responseAssertions": [
+      {
+        "checkResponseKey": "[0].name",
+        "expectedValue": "test collection name"
+      },
+      {
+        "checkResponseKey": "[0].id",
+        "expectedValue": 1
+      },
+      {
+        "checkResponseKey": "[0].owner",
+        "expectedValue": "zzzaaa"
+      },
+      {
+        "checkResponseKey": "[0].resources[0].name",
+        "expectedValue": "test resource 123"
+      }
+    ]
+  }
+]

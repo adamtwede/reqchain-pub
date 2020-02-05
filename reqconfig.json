@@ -1,0 +1,7 @@
+{
+	"requestsUri": "src/main/resources/example/requests.json",
+	"mockResponsesUri": "src/main/resources/example/mockResponses.json",
+	"useMocks": true,
+	"useEnv": true,
+	"templateString": "executed against collection ${collectionId} and resource ${resourceId}"
+}
