@@ -15,19 +15,19 @@ import java.lang.Exception
 
 typealias Stack = MutableList<MappingToOutgoingRequest>
 
-val fakeEnvVarMap = mutableMapOf<String, String?>( // for testing, new env vars sometimes don't like to show up
-    "reqchain_host" to "my.idp.com",
-    "reqchain_client_id" to "PLiAGZ46qyc72yPNXoJ3t7b2f01LRvPL",
-    "reqchain_client_secret" to "ctYZvUsCd4sRklQzez4ieGcFUwx5k3XCgjrZmkdAbPvdeu4NQwpIlgEZUBs3bcb4",
-    "reqchain_audience" to "https://my.audience.com",
-    "reqchain_grant_type" to "client_credentials"
-)
+//val fakeEnvVarMap = mutableMapOf<String, String?>( // for testing, new env vars sometimes don't like to show up
+//    "reqchain_host" to "my.idp.com",
+//    "reqchain_client_id" to "PLiAGZ46qyc72yPNXoJ3t7b2f01LRvPL",
+//    "reqchain_client_secret" to "ctYZvUsCd4sRklQzez4ieGcFUwx5k3XCgjrZmkdAbPvdeu4NQwpIlgEZUBs3bcb4",
+//    "reqchain_audience" to "https://my.audience.com",
+//    "reqchain_grant_type" to "client_credentials"
+//)
 
 val responseRootArrayKey = "__responseRootWrapperKeyForArray__"
 val defaultRequestsUri = ""
 val interpolationStartDelimiter = "\${"
 val interpolationEndDelimiter = "}"
-val interpolationPatternString = "\\\$\\{([a-zA-Z]+)}"
+val interpolationPatternString = "\\\$\\{([a-zA-Z]+)}" // trying to put the delimiters directly in here is kind of a mess
 val envSafetyInfix = "reqchain_"
 val envPrefix = "env."
 val envPatternStartDelimiter = "<"
@@ -286,7 +286,7 @@ fun replaceStringForEnvVar(str: String): String {
             .replace(envPatternEndDelimiter, "")
             .replace(envPrefix, "")
         if(!envKey.startsWith(envSafetyInfix)) m.value
-        val envVar = System.getenv(envKey) ?: fakeEnvVarMap[envKey] ?: ""
+        val envVar = System.getenv(envKey) ?: ""//fakeEnvVarMap[envKey] ?: ""
         if (envVar.isNotBlank()) envVar else m.value
     }
 }
@@ -354,7 +354,8 @@ fun executeRequest(endpoint: Endpoint?,
         }
         return parsedResult as JsonObject
     }
-    throw IOException("${endpoint?.type} request to ${endpoint?.host}:${endpoint?.port}${endpoint?.path} failed with response code ${response.code()} and message: ${response.message()}")
+    val message = if(response.message().isBlank()) response.body()?.string() else response.message()
+    throw IOException("${endpoint?.type} request to ${endpoint?.host}:${endpoint?.port}${endpoint?.path} failed with response code ${response.code()} and message: $message")
 }
 
 fun dispatchRequest(endpoint: Endpoint?,

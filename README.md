@@ -16,7 +16,7 @@ In future versions it may be possible to supply an HTTP endpoint instead that re
 configuration JSON object of the same format.
 
 There are three ways to run the utility. Again, no matter how you run it, you must supply it with
-a valid path to a configuration file. One way to run the utility is to open this project a Kotlin-capable
+a valid path to a configuration file. One way to run the utility is to open this project in a Kotlin-capable
 IDE (only tested with IntelliJ) and use the internal tools to run the main function. Another way to run
 the utility is to run the included req_chain.kts standalone script from the command line. Running the
  utility this way requires the installation of [kscript](https://github.com/holgerbrandl/kscript):
@@ -46,7 +46,7 @@ specified (the purpose of each is described further in this document):
     }
 
 The json file specified by requestsUri should contain an array of json objects, each 
-of which represents a single HTTP request. The schema of these objects
+of which represents a single HTTP request. The schema of these objects (not a formal JSON schema, yet)
 allows for the declarative execution of the HTTP requests they describe,
 which includes mapping response values to subsequent requests and performing
 assertions on response data to test assumptions and functionality.

@@ -10,19 +10,19 @@ import java.lang.Exception
 
 typealias Stack = MutableList<MappingToOutgoingRequest>
 
-val fakeEnvVarMap = mutableMapOf<String, String?>( // for testing, new env vars sometimes don't like to show up
-    "reqchain_host" to "my.idp.com",
-    "reqchain_client_id" to "PLiAGZ46qyc72yPNXoJ3t7b2f01LRvPL",
-    "reqchain_client_secret" to "ctYZvUsCd4sRklQzez4ieGcFUwx5k3XCgjrZmkdAbPvdeu4NQwpIlgEZUBs3bcb4",
-    "reqchain_audience" to "https://my.audience.com",
-    "reqchain_grant_type" to "client_credentials"
-)
+//val fakeEnvVarMap = mutableMapOf<String, String?>( // for testing, new env vars sometimes don't like to show up
+//    "reqchain_host" to "my.idp.com",
+//    "reqchain_client_id" to "PLiAGZ46qyc72yPNXoJ3t7b2f01LRvPL",
+//    "reqchain_client_secret" to "ctYZvUsCd4sRklQzez4ieGcFUwx5k3XCgjrZmkdAbPvdeu4NQwpIlgEZUBs3bcb4",
+//    "reqchain_audience" to "https://my.audience.com",
+//    "reqchain_grant_type" to "client_credentials"
+//)
 
 val responseRootArrayKey = "__responseRootWrapperKeyForArray__"
 val defaultRequestsUri = ""
 val interpolationStartDelimiter = "\${"
 val interpolationEndDelimiter = "}"
-val interpolationPatternString = "\\\$\\{([a-zA-Z]+)}"
+val interpolationPatternString = "\\\$\\{([a-zA-Z]+)}" // trying to put the delimiters directly in here is kind of a mess
 val envSafetyInfix = "reqchain_"
 val envPrefix = "env."
 val envPatternStartDelimiter = "<"
@@ -255,19 +255,18 @@ fun replaceReqValsWithEnvVars(currentRoot: JsonObject) {
             }
 
             is JsonArray<*> -> {
-                //for (obj in childNode) {
                 for(i in 0 until childNode.size) {
-                    val obj = childNode[i]
-                    when(obj) {
+                    when(val obj = childNode[i]) {
                         is JsonObject -> {
                             replaceReqValsWithEnvVars(obj)
                         }
                         is String -> {
                             val arrayVal = childNode[i]
                             if(arrayVal is String) {
-                                // should be safe to do this cast with arrayVal type check even though
-                                // things other than strings can be in a json array
-                                val childNodeAs = childNode as JsonArray<String>
+                                // unchecked cast childNode parameterized to Any but we know
+                                // the value we're assigning is a string so it should
+                                // be safe.
+                                val childNodeAs = childNode as JsonArray<Any>
                                 childNodeAs[i] = replaceStringForEnvVar(arrayVal)
                             }
                         }
@@ -284,7 +283,7 @@ fun replaceStringForEnvVar(str: String): String {
             .replace(envPatternEndDelimiter, "")
             .replace(envPrefix, "")
         if(!envKey.startsWith(envSafetyInfix)) m.value
-        val envVar = System.getenv(envKey) ?: fakeEnvVarMap[envKey] ?: ""
+        val envVar = System.getenv(envKey) ?: "" //fakeEnvVarMap[envKey] ?: ""
         if (envVar.isNotBlank()) envVar else m.value
     }
 }
@@ -352,7 +351,8 @@ fun executeRequest(endpoint: Endpoint?,
         }
         return parsedResult as JsonObject
     }
-    throw IOException("${endpoint?.type} request to ${endpoint?.host}:${endpoint?.port}${endpoint?.path} failed with response code ${response.code()} and message: ${response.message()}")
+    val message = if(response.message().isBlank()) response.body()?.string() else response.message()
+    throw IOException("${endpoint?.type} request to ${endpoint?.host}:${endpoint?.port}${endpoint?.path} failed with response code ${response.code()} and message: $message")
 }
 
 fun dispatchRequest(endpoint: Endpoint?,
