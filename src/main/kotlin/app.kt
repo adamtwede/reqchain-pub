@@ -67,6 +67,12 @@ fun main(args: Array<String>) {
             if(configJson.containsKey("useEnv")) {
                 appConfig.useEnv = configJson["useEnv"] as Boolean
             }
+            if(configJson.containsKey("logRequests")) {
+                appConfig.logRequests = configJson["logRequests"] as Boolean
+            }
+            if(configJson.containsKey("logResponses")) {
+                appConfig.logResponses = configJson["logResponses"] as Boolean
+            }
             if(configJson.containsKey("templateString")) {
                 appConfig.templateString = configJson["templateString"].toString()
             }
@@ -78,8 +84,11 @@ fun main(args: Array<String>) {
     val useMocks = appConfig.useMocks
     val useEnv = appConfig.useEnv
     val outputTemplate = appConfig.templateString
+    val shouldLogRequests = appConfig.logRequests
+    val shouldLogResponses = appConfig.logResponses
 
-    val result = executeRequestChain(reqUri, mockRespUri, mock = useMocks, env = useEnv)
+    val result = executeRequestChain(reqUri, mockRespUri, mock = useMocks, env = useEnv,
+                                    logRequests = shouldLogRequests, logResponses = shouldLogResponses)
     val preservedItems = result["preservedItems"]?: emptyMap<String, String>()
 
     if(outputTemplate.isNotBlank()) {
@@ -94,7 +103,10 @@ fun main(args: Array<String>) {
     }
 }
 
-fun executeRequestChain(requestsUri: String, mockResponsesUri: String, haltOnAssertionFailure: Boolean = true, mock: Boolean = false, env: Boolean = true): MutableMap<String, MutableMap<String, String>> {
+fun executeRequestChain(requestsUri: String, mockResponsesUri: String, haltOnAssertionFailure: Boolean = true,
+                        mock: Boolean = false, env: Boolean = true,
+                        logRequests: Boolean = false,
+                        logResponses: Boolean = false): MutableMap<String, MutableMap<String, String>> {
     val requestsJson = Parser().parse(requestsUri) as JsonArray<*>
 
 //    if(mock) println("using mocked responses")
@@ -136,10 +148,37 @@ fun executeRequestChain(requestsUri: String, mockResponsesUri: String, haltOnAss
         val reqHeaders = req.obj("headers")?.toMap() ?: emptyMap()
         val reqParams = req.obj("params")?.toMap() ?: emptyMap()
 
+        if(logRequests) {
+            println("--- REQUEST ${i+1} ---")
+            req.obj("endpoint")?.let {
+                println("ENDPOINT: ")
+                println(it.toJsonString(prettyPrint = true))
+            }
+            req.obj("body")?.let {
+                println("BODY: ")
+                println(it.toJsonString(prettyPrint = true))
+            }
+            req.obj("headers")?.let {
+                println("HEADERS: ")
+                println(it.toJsonString(prettyPrint = true))
+            }
+            req.obj("params")?.let {
+                println("PARAMS: ")
+                println(it.toJsonString(prettyPrint = true))
+            }
+            println()
+        }
+
         val responseJson = if(mock) {
             getMockedResponse(i, mockResponsesUri)
         } else {
             executeRequest(reqEndpoint, reqBody, reqHeaders, reqParams)
+        }
+
+        if(logResponses) {
+            println("--- RESPONSE ${i+1} ---")
+            println(responseJson?.toJsonString(prettyPrint = true))
+            println()
         }
 
         val responseRootIsArray = responseJson?.containsKey(responseRootArrayKey) == true
@@ -512,6 +551,8 @@ data class AppConfig(var requestsUri: String = "",
                      var mockResponsesUri: String = "",
                      var useMocks: Boolean = false,
                      var useEnv: Boolean = false,
+                     var logRequests: Boolean = false,
+                     var logResponses: Boolean = false,
                      var templateString: String = "")
 
 data class MappingFromJson(

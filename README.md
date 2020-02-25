@@ -34,14 +34,17 @@ kscript using the following command:
     kscript --package req_chain.kts
 
 An example config file is also included (reqconfig.json) as a reference. 
-The file specified can have up to five configuration values 
-specified (the purpose of each is described further in this document):
+The file specified can have up to six configuration values 
+specified (the purposes of most of these are described further in this document,
+the rest should be self explanatory):
 
     {
 	    "requestsUri": "~/my/requests.json",
 	    "mockResponsesUri": "~/my/mockResponses.json",
-	    "useMocks": false,
+	    "useMocks": true,
 	    "useEnv": true,
+	    "logRequests": true,
+	    "logResponses": true,
 	    "templateString": "my template string: ${id}, ${token}"
     }
 
@@ -105,7 +108,7 @@ instead:
 A key aspect of mapping response values from one request to the next is the
 ability to inject not just header values, but parameters and other parts of a
 request object. For instance, path parameters can be injected by mapping values 
-to the "endpoint" object of a request object. For instance, a particular request 
+to the "endpoint" object of a request object. A particular request 
 might return information about a resource which belongs to a collection with a GET 
 request to a path like /api/my/resource/3. The response to this GET request might look 
 like this:
